@@ -1,4 +1,5 @@
 import React from 'react';
+import useEth from "contexts/EthContext/useEth";
 
 import { useTheme } from "@mui/material/styles";
 import {Grid, Button, Typography} from '@mui/material';
@@ -12,6 +13,8 @@ import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 import MapCard from 'components/Map/Map';
 import DropStream from 'components/DropStream';
 
+import NFTCardStream from 'ui-component/cards/NFTCardStream';
+
 
 const initialList = [];
 const listNFTReducer = (state, action) => {
@@ -21,8 +24,11 @@ const listNFTReducer = (state, action) => {
       return {
         ...state,
         listNFT: state.listNFT.concat({
-          key: action.key,
+          tokenId: action.tokenId,
+          walletAddress:action.walletAddress,
           location: action.location,
+          name:action.name,
+          info:action.info
         }),
       };
     default:
@@ -32,11 +38,13 @@ const listNFTReducer = (state, action) => {
 
 
 function Home() {
+    const { state } = useEth();
     const theme = useTheme();
     const inputlocation = React.createRef();
     const [isLoading, setLoading] = React.useState(true);
     const [action, setAction] = React.useState('look');
-
+    const [nftSelected, setNftSelected] = React.useState();
+    
     React.useEffect(() => {
       setLoading(false);
     }, []);
@@ -46,9 +54,10 @@ function Home() {
         listNFT: initialList,
         isShowList: true,
     });
-    function handleAdd(key, location) {
-        dispatchListData({ type: "ADD_ITEM", key, location });
+    function handleAdd(tokenId, walletAddress,location, name, info) {
+        dispatchListData({ type: "ADD_ITEM", tokenId, walletAddress, location , name, info});
     }
+
     //-------------------------------------------------------------------------
     const handleActionChange = (event, newAction) => {
         setAction(newAction);
@@ -60,7 +69,7 @@ function Home() {
     return (
         <Grid justifyContent="center" sx={{ flexGrow: 2 }}   container spacing={4}>  
             <Grid item xs={12} sx={{ m: 3 }} >
-                <Typography variant="h3" component="div" align='center' color = { theme.palette.primary.dark}  >
+                <Typography variant="h3" component="div" align='center' color = { theme.palette.primary.light}  >
                     Menta Stream
                 </Typography>
            </Grid >
@@ -75,6 +84,10 @@ function Home() {
                 <ToggleButton value="drop">Drop Stream</ToggleButton>
                 </ToggleButtonGroup>
             </Grid>
+            <Grid item xs={12} sx={{ m: 0 }} align='center'>
+                {nftSelected? (<NFTCardStream assetId={nftSelected.info} owner = {nftSelected.walletAddress} onClose={() => setNftSelected(null) } />
+                ):(<></>)}
+             </Grid>
 
             {/* IF IN LOOK SHOW MAP ELSE SHOW ADD NFT */}
             {action == 'look' ? (
@@ -93,6 +106,7 @@ function Home() {
                         locationRef={inputlocation}
                         handleAdd={handleAdd}
                         isLoading={isLoading}
+                        setNftSelected={setNftSelected}
                     />
                 </Grid>
             ) : (

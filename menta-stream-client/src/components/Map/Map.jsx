@@ -3,15 +3,13 @@ import { Loader } from "@googlemaps/js-api-loader";
 
 import GoogleMapReact from "google-map-react";
 import "./Map.css";
-import { GetNFTWithinRegion, GetNFT } from "server/Database";
+import { GetNFTWithinRegion, GetNFT, DistanceBtwePopints } from "server/MentaportSDK";
 import MapPin from "ui-component/MapPin";
-import NFTCard from "ui-component/cards/NFTCard";
 
 // GOOGLE MAPS API CREDENTIALS
-
 const GMAPS_API_KEY = process.env.REACT_APP_GMAPS_API_KEY;
 const K_HOVER_DISTANCE = 30;
-const mapCenter = { lat: 38.91131141655464, lng: -77.04375138092037 };
+//const mapCenter = { lat: 38.91131141655464, lng: -77.04375138092037 };
 
 const loadScript = async () => {
   const loader = new Loader({
@@ -36,8 +34,8 @@ class Map extends Component {
     },
     googleLoaded: false,
     maps: null,
-    popupInfo: null,
-    key: null,
+    popupInfo: false,
+    nft: null,
   };
   mapRef = React.createRef();
 
@@ -68,13 +66,22 @@ class Map extends Component {
   }
 
   async _updateViewport(viewport) {
-    await this.setState({ viewport });
-    await this._updateNFTs(viewport.center);
+    const vp = this.state.viewport;
+   
+    if(DistanceBtwePopints(vp.center.lat,vp.center.lng,
+       viewport.center.lat,viewport.center.lng, 10))
+    {
+      await this.setState({viewport});
+      await this._updateNFTs(viewport.center);
+    }
+    else {
+     // console.log("position almost the same")
+    }
   }
 
   async _updateNFTs(center) {
     const { handleAdd } = this.props;
-  // const nf = await GetNFTWithinRegion(handleAdd, center, 10);
+    const nf = await GetNFTWithinRegion(10000, handleAdd);
   }
 
   _googleMapLoaded = (map, maps) => {
@@ -116,14 +123,6 @@ class Map extends Component {
         scaledSize: new maps.Size(25, 25),
       };
 
-      // Create a marker for each place.
-      // markers.push(new google.maps.Marker({
-      //     map: map,
-      //     icon: icon,
-      //     title: place.name,
-      //     position: place.geometry.location
-      // }));
-
       if (place.geometry.viewport) {
         // Only geocodes have viewport.
         bounds.union(place.geometry.viewport);
@@ -141,32 +140,32 @@ class Map extends Component {
         key={`marker-${index}`}
         lng={nft.location[1]}
         lat={nft.location[0]}
-        onClick={() => this._onPinClicked(nft.key)}
-        info={nft.key}
+        onClick={() => this._onPinClicked(nft)}
+        info={nft.name}
       />
     );
   };
 
   async _onPinClicked(nft) {
-    const result = await GetNFT(nft);
-    this.setState({ popupInfo: result, key: nft });
+    const { setNftSelected } = this.props;
+   // this.setState({ popupInfo: true, nft: nft });
+    setNftSelected(nft);
   }
 
-  _renderPopup = () => {
-    const { popupInfo, key } = this.state;
-    // const {user}= this.props;
-
-    return (
-      popupInfo && (
-        <NFTCard
-          info={popupInfo}
-          nftID={key}
-          onClose={() => this.setState({ popupInfo: null })}
-          // isUser={user}
-        />
-      )
-    );
-  };
+  // _renderPopup = () => {
+  //   const { popupInfo, nft } = this.state;
+  //   // const {user}= this.props;
+  //   console.log(popupInfo)
+  //   return (
+  //     popupInfo && (
+  //       <NFTCard
+  //         nft={nft}
+  //         onClose={() => this.setState({ popupInfo: false })}
+  //         // isUser={user}
+  //       />
+  //     )
+  //   );
+  // };
 
   render() {
     const { viewport, stores, googleLoaded } = this.state;
@@ -176,7 +175,6 @@ class Map extends Component {
       <div style={{ height: "80vh", width: "100%" }}>
         <GoogleMapReact
           ref={this.mapRef}
-          // bootstrapURLKeys={{ key: GMAPS_API_KEY}}
           bootstrapURLKeys={{
             key: GMAPS_API_KEY,
             libraries: ["places"],
@@ -195,15 +193,15 @@ class Map extends Component {
             this._updateViewport({
               ...this.state.viewport,
               center: {
-                latitude: center.lat,
-                longitude: center.lng,
+                lat: center.lat,
+                lng: center.lng,
               },
               zoom: zoom,
             })
           }
         >
-          {/* {listNFT && listNFT.map(this._renderNFTMarker)}
-          {this._renderPopup()} */}
+         {listNFT && listNFT.map(this._renderNFTMarker)} 
+         {/* {this._renderPopup()} */}
         </GoogleMapReact>
       </div>
     );

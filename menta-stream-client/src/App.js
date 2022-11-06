@@ -1,4 +1,5 @@
-import logo from './logo.svg';
+import { EthProvider } from "contexts/EthContext";
+
 import './App.css';
 import { ThemeProvider } from '@mui/material/styles';
 import { CssBaseline, StyledEngineProvider } from '@mui/material';
@@ -27,13 +28,15 @@ const client = createReactClient({
 function App() {
   return (
     <LivepeerConfig client={client} >
+      <EthProvider >
       <StyledEngineProvider injectFirst>
         <ThemeProvider theme={themes}>
           <CssBaseline />
             <Routes />
           </ThemeProvider>
       </StyledEngineProvider>
-      </LivepeerConfig>
+      </EthProvider>
+    </LivepeerConfig>
 
   );
 }

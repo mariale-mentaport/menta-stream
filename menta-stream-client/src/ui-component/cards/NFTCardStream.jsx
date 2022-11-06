@@ -7,7 +7,7 @@ import { Player } from '@livepeer/react';
 import IconButton from '@mui/material/IconButton';
 import CancelIcon from '@mui/icons-material/Cancel';
 
- const CardPlayer = (props) => {
+ const NFTCardStream = (props) => {
     const { assetId, owner, onClose} = props;
     const { data: asset } = useAsset(assetId);
     return (
@@ -22,6 +22,7 @@ import CancelIcon from '@mui/icons-material/Cancel';
                 <Player
                 title={asset?.name}
                 playbackId={asset?.playbackId}
+                // poster={<PosterImage />}
                 showPipButton
                 />
             </CardContent>
@@ -36,4 +37,4 @@ import CancelIcon from '@mui/icons-material/Cancel';
         </Card>
   );
 };
-export default CardPlayer
+export default NFTCardStream

@@ -1,4 +1,3 @@
-import axios from 'axios';
 const LIVESTREAM_API = process.env.REACT_APP_LIVESTREAM_API;
 
 const headers = {

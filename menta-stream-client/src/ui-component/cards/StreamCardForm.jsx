@@ -1,8 +1,7 @@
 import React from "react"
 import { useState, useEffect } from 'react';
-import {AppBar,Toolbar,  Grid, Box, Container} from '@mui/material';
-import {Button,Card, CardActions, CardContent, CardMedia} from '@mui/material';
-import {CssBaseline, Stack, TextField, Typography, Link} from '@mui/material';
+import {Button,Card,CardContent, Box} from '@mui/material';
+import  {Stack, Typography, Link} from '@mui/material';
 import { useTheme } from "@mui/material/styles";
 import { LoadingButton } from '@mui/lab';
 
@@ -11,7 +10,7 @@ import {GetUplaodNewStreamStatus} from 'server/LivepeerSDK';
 import * as Yup from 'yup';
 import { Formik } from 'formik';
 
-import { useAsset, useCreateAsset } from '@livepeer/react';
+import {useCreateAsset } from '@livepeer/react';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 
 import {
@@ -19,15 +18,13 @@ import {
     FormControl,
     FormControlLabel,
     FormHelperText,
-    IconButton,
-    InputAdornment,
     InputLabel,
     OutlinedInput,
 } from '@mui/material';
 
 const StreamCardForm = (props) => {
     const theme = useTheme();
-    const {image, title, info, CallbackCall} = props;
+    const {title, info, CallbackCall} = props;
     const [errorMsg, setErrorMsg] = useState('');
     const [formValues, setFormValues] = useState();
     const [video, setVideo] = useState();
@@ -46,18 +43,27 @@ const StreamCardForm = (props) => {
         if(asset?.id) {
             const fetchData = async () => {
                 let data = await GetUplaodNewStreamStatus(asset?.id);
-                while(data.phase != 'ready'){
+                // TODO: FIX ISSUE WHEN FAILES LOADING
+                while(data.phase != 'ready') {
                     data = await GetUplaodNewStreamStatus(asset?.id);
                     console.log(data)
                     setLoadingProgress(Math.floor(data.progress * 100))
                 }
-                setLoadData(false);
-                CallbackCall(formValues.streamName, formValues.email, formValues.address, asset?.id);
+                // done uplloading!
+                setLoadingProgress(100);
+                DoneUploading(asset?.id);
             }
-              // call the function
-              fetchData()
+            // call the function
+            fetchData()
         }
     });
+
+    function DoneUploading(id) {
+        setLoadData(false);
+        console.log("DoneUploading")
+        // now mint
+        CallbackCall(formValues.streamName, formValues.radius, id);
+    }
 
     function LoadingVideo() {
 
@@ -71,9 +77,8 @@ const StreamCardForm = (props) => {
     }
 
     return (
-        <Card sx={{  display: 'flex', flexDirection: 'column', maxWidth:400 }}>
-        {/* <CardMedia component="img" image={"images/upload_small.png"} alt="upload" height="250"
-        /> */}
+        <Card sx={{  display: 'flex', flexDirection: 'column', maxWidth:500 }}>
+     
         <CardContent sx={{ flexGrow: 1 }}>
             <Typography sx={{ fontSize: 20}} color="text.secondary" gutterBottom>
                 <CloudUploadIcon color="primary" sx={{ fontSize: 50, mr:3, mb:-1 }}/> 
@@ -86,30 +91,29 @@ const StreamCardForm = (props) => {
             <Formik
                 initialValues={{
                     streamName: '',
-                    email: '',
-                    address: 'ENS',
+                    radius: '',
+                    // address: 'ENS',
                     submit: null
                 }}
                 validationSchema={Yup.object().shape({
                     streamName: Yup.string().min(5).max(255).required('Stream name is required'),
-                    email: Yup.string().email('Must be a valid email').max(255).required('Email is required'),
-                    address: Yup.string().min(5).max(255).required('ENS/Address is required')
+                    radius: Yup.number().required('need a radius'),
+                   // email: Yup.string().email('Must be a valid email').max(255).required('Email is required'),
+                    // address: Yup.string().min(5).max(255).required('ENS/Address is required')
                 })}
                 onSubmit={async (values, { setErrors, setStatus, setSubmitting }) => {
                 try {
                     console.log(values)
                     if (video) {
-                        if (video) {
-                            setLoadData(true);
-                            setFormValues({name:values.streamName, email:values.email, address:values.address});
-                            await createAsset({
-                              name: values.streamName,
-                              file: video,
-                            });
-                           
-                        }
-                    
-                       // 
+                       console.log("here")
+                        setLoadData(true);
+                        await setFormValues({streamName:values.streamName, radius:values.radius});
+                        //DoneUploading('7f2906ca-3bc4-4413-9a03-47693d704366');
+                        
+                        await createAsset({
+                          name: values.streamName,
+                          file: video,
+                        });
                     }
                    else{ setErrors({ submit: "Add video" }); }
                     
@@ -132,7 +136,7 @@ const StreamCardForm = (props) => {
                         />
                     
                     </FormControl>
-                    <FormControl fullWidth error={Boolean(touched.streamName && errors.streamName)} sx={{ ...theme.typography.customInput }}>
+                    <FormControl fullWidth error={Boolean(touched.streamName && errors.streamName)} sx={{ ...theme.typography.customInput,mt:5}}>
                         <InputLabel htmlFor="outlined-adornment-streamname">Stream Name</InputLabel>
                         <OutlinedInput
                             id="outlined-adornment-streamname"
@@ -151,44 +155,25 @@ const StreamCardForm = (props) => {
                         )}
                     </FormControl>
                     
-                    <FormControl fullWidth error={Boolean(touched.email && errors.email)} sx={{ ...theme.typography.customInput }}>
-                        <InputLabel htmlFor="outlined-adornment-email">Email Address</InputLabel>
-                        <OutlinedInput
-                            id="outlined-adornment-email"
-                            type="email"
-                            value={values.email}
-                            name="email"
-                            onBlur={handleBlur}
-                            onChange={handleChange}
-                            label="Email Address"
-                            inputProps={{}}
-                        />
-                        {touched.email && errors.email && (
-                            <FormHelperText error id="standard-weight-helper-text-email">
-                                {errors.email}
-                            </FormHelperText>
-                        )}
-                    </FormControl>
-
                     <FormControl
                         fullWidth
-                        error={Boolean(touched.adress && errors.adress)}
-                        sx={{ ...theme.typography.customInput }}
-                    >
-                        <InputLabel htmlFor="outlined-adornment-address">Drop your address or ENS here</InputLabel>
+                        error={Boolean(touched.radius && errors.radius)}
+                        sx={{ ...theme.typography.customInput ,mt:5}}>
+                    
+                        <InputLabel htmlFor="outlined-adornment-radius">Radius of drop</InputLabel>
                         <OutlinedInput
-                            id="outlined-adornment-address"
+                            id="outlined-adornment-radius"
                             type='text'
-                            value={values.adress}
-                            name="address"
+                            value={values.radius}
+                            name="radius"
                             onBlur={handleBlur}
                             onChange={handleChange}
-                            label="Address"
+                            label="Radius"
                             inputProps={{}}
                         />
-                        {touched.address && errors.address && (
-                            <FormHelperText error id="standard-weight-helper-text-address">
-                                {errors.address}
+                        {touched.radius && errors.radius && (
+                            <FormHelperText error id="standard-weight-helper-text-radius">
+                                {errors.radius}
                             </FormHelperText>
                         )}
                     </FormControl>
