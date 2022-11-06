@@ -1,0 +1,27 @@
+{
+    "mode": "local",
+    
+    "tableNames" :{
+      "users":"users",
+      "contracts": "contracts",
+      "mintRules": "mintRules",
+      "nftDynamicRules": "nftDynamicRules"
+    },
+  
+    "CLOUDSTORE_DB" : "https://mentaport-dev-default-rtdb.firebaseio.com",
+    "CLOUDSTORE_BUCKET" : "abi_files-dev",
+  
+    "WEB3_PROVIDER_URL": "HTTP://127.0.0.1:7545",
+    "BLOCKCHAIN_ENV" : "local",
+  
+    "API_URL" : "https://eth-ropsten.alchemyapi.io/v2/your-api-key",
+    "API_GEOG" : "AIzaSyCkxikDTLhe6qGl97g9Tkg8obNslNUoh9w",
+    "GMAPS_API_KEY":"AIzaSyAJw-mMTpQ1TgmpSCJfdv4WRBC756gVN54",
+    
+    "OWNER_PK" : "e45d16c8062e99e664dfd518f789d90a760fc947c2a9441bd4dd92820e54470e",
+    "OWNER_ADDR" : "0x3bD3b2D1C0cD18ed91779356702E9B5B1f1bbfb4",
+  
+    "BRAND_PK" : "70d22038a7f3c43028571f78652e1b814cd725194edffce2ba35d39c5ee233c2",
+    "BRAND_ADDR" : "0x3f6BB08Ed84C4242c17786263AE0F6a61d58CbAa"
+  
+  }
